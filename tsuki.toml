@@ -1,0 +1,31 @@
+[info]
+title = "Tsuki v0.1 for Lua 5.4"
+arguments = ["runtsuki.lua"]
+
+[[files]]
+name = "tsuki/colors.lua"
+url = "https://cdn.jsdelivr.net/gh/MineRobber9000/tsuki@trunk/tsuki/colors.lua"
+
+[[files]]
+name = "tsuki/config.lua"
+url = "https://cdn.jsdelivr.net/gh/MineRobber9000/tsuki@trunk/tsuki/config.lua"
+
+[[files]]
+name = "tsuki/init.lua"
+url = "https://cdn.jsdelivr.net/gh/MineRobber9000/tsuki@trunk/tsuki/init.lua"
+
+[[files]]
+name = "tsuki/pretty.lua"
+url = "https://cdn.jsdelivr.net/gh/MineRobber9000/tsuki@trunk/tsuki/pretty.lua"
+
+[[files]]
+name = "tsuki/repl.lua"
+url = "https://cdn.jsdelivr.net/gh/MineRobber9000/tsuki@trunk/tsuki/repl.lua"
+
+[[files]]
+name = "tsuki/utils.lua"
+url = "https://cdn.jsdelivr.net/gh/MineRobber9000/tsuki@trunk/tsuki/utils.lua"
+
+[[files]]
+name = "runtsuki.lua"
+url = "./runtsuki.lua"

@@ -1,0 +1,100 @@
+<html>
+<head>
+<title>Lua 5.4.7</title>
+<link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
+<script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+<script src="node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+<script src="node_modules/xterm-pty/index.js"></script>
+</head>
+<body style="margin: 0; background-color: #000;">
+<div id="terminal" style="width: 100vw; height: 100vh;"></div>
+<script type="module">
+import initWasmModule from './build/glue.js';
+var term = new Terminal();
+var fit = new FitAddon.FitAddon();
+term.loadAddon(fit);
+term.open(document.getElementById("terminal"));
+
+window.term = term;
+
+const {master, slave} = openpty();
+term.loadAddon(master);
+
+function onResize() {
+	fit.fit();
+	slave.winsize = [term.cols, term.rows];
+	slave._onSignal.fire("SIGWINCH");
+}
+window.addEventListener('resize',onResize);
+onResize(); // first time!
+
+window.master = master;
+window.slave = slave;
+
+const _files = ["tsuki/colors.lua","tsuki/config.lua","tsuki/init.lua","tsuki/pretty.lua","tsuki/repl.lua","tsuki/utils.lua","runtsuki.lua"];
+
+import TOML from './node_modules/smol-toml/dist/index.js';
+
+async function init() {
+	let search = new URLSearchParams(location.search);
+
+	let _arguments = [];
+	let files = [];
+	if (search.has("config")) {
+		try {
+			let conf = await fetch(search.get("config")).then((data)=>data.text());
+			conf = TOML.parse(conf);
+			if (conf.info) {
+				if (conf.info.title) document.title = conf.info.title;
+				if (conf.info.arguments) _arguments = conf.info.arguments;
+			}
+			if (conf.files) {
+				for (const file of conf.files) {
+					if (!(file.name && file.url)) throw new Error("invalid file! (must contain name and url)");
+					files.push([file.name, file.url]);
+				}
+			}
+		} catch (err) {
+			alert("Error loading config: "+err.toString()+"\n\nDefaulting to normal Lua REPL.");
+		}
+	}
+
+	let files_obj = {};
+	for (const [filename, url] of files) {
+		let data = await fetch(url).then((data)=>data.text());
+		files_obj[filename]=data;
+	}
+
+	let mod = await initWasmModule({
+		arguments: _arguments,
+		locateFile: function(path, prefix) {
+			return prefix+path
+		},
+		preRun: (initMod) => {
+			for (const [path, contents] of Object.entries(files_obj)) {
+				let parents = path.split("/").reverse().slice(1);
+				let parent = "";
+				while (parents.length) {
+					let curr_part = parents.pop()
+					if (!curr_part) continue;
+					let current = `${parent}/${curr_part}`
+					try {
+						initMod.FS.mkdir(current);
+					} catch (err) {
+						// don't really care
+					}
+					parent=current;
+				}
+				initMod.FS.writeFile(path,contents);
+			}
+		},
+		pty: slave
+	});
+
+	window.mod = mod;
+}
+
+init();
+</script>
+</body>
+</html>

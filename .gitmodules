@@ -1,0 +1,6 @@
+[submodule "lua"]
+	path = lua
+	url = https://github.com/lua/lua
+[submodule "lua-linenoise"]
+	path = lua-linenoise
+	url = https://github.com/hoelzro/lua-linenoise
